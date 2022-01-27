@@ -1,0 +1,51 @@
+program infiniteslopemethod
+implicit none
+
+real c,gams,gamw,z,b,fi ! Slope parameters
+real pi,n,t,m,u,hw,cr,fir,br,FS,a,cz !Calculated parameters
+
+    PRINT *, '		 In this program we attempt to calculate the'
+    PRINT *, '		 factor of safety with infinite slope method'
+    PRINT *, '		 Note : you can enter variable z and see the result'!Programs information
+	print *, '------------------------------------------------------------'
+    print *, '		 Please input the unit weight of slope material :'
+    read *, gams
+    print *, '		 Please input the unit weight of water :'
+    read *, gamw
+    print *, '		 Please input the cohesion factor and friction angle :'
+    read *, c,fi
+    print *, '		 Please input the slope inclination degree :'
+    read *, b
+17  print *, '		 So, we need the height of the infinite slop :'
+    read *, z
+    
+    pi=asin(1.0)*2.0
+    fir=(pi*fi)/180
+    br=(pi*b)/180
+    t=tan(fir)
+    n=gams*z*((cos(br))**2)
+    m=gams*z*cos(br)*sin(br)
+
+  			IF (z<=1) THEN
+    print *, '		 You entered a height that you are not in submerged slope.'
+    FS=(c+n*t)/m
+ 	print *, '		 Factor of Safety will be : ' ,FS
+			END IF
+            IF (z>1) THEN
+    print *, '		 You entered a height that you are in submerged slope.'
+    hw=z-1
+    u=gamw*hw*((cos(br))**2)
+	FS=(c+(n-u)*t)/m
+ 	print *, '		 Factor of Safety will be : ' ,FS
+			END IF
+    print *, '		 Do you want to try another height ? inter(1=Yes,0=No).'
+    read *, a
+    		IF (a==1) THEN
+			goto 17
+			END IF
+    cz=(c+gamw*((cos(br))**2)*t)/(gams*cos(br)*sin(br)-((gams*((cos(br))**2)-gamw*((cos(br))**2))*t))
+    print *, 'The critical hieght will be : (m)',cz
+    print *, '********************The End******************************'
+    print *, '		 	Developed By : M. Reza Nabizadeh'
+ end program infiniteslopemethod
+ 
