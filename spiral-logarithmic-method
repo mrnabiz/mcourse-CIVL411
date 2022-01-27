@@ -1,0 +1,86 @@
+program logmethod
+implicit none
+
+real c,gams,fi ! Slope parameters
+real pi,fir,FS,r1,r2,tet,FS1,k1,k2,e,res,aria,act,w,tfid,t,a !Calculated parameters
+real al1,al2,ex,ex1,ex3,ex4,ex5,FScal,xcrit,ycrit,FScrit,r1crit,r2crit !Calculated parameters
+real tetcrit,rescrit,wcrit,actcrit,r1crit,r2crit,acrit !Calculated parameters
+integer x1,y1
+
+    PRINT *, '		 In this program we attempt to calculate the'
+    PRINT *, '		 factor of safety with infinite slope method'
+    PRINT *, '		 Note : you can enter variable z and see the result'!Programs information
+	print *, '------------------------------------------------------------'
+    print *, '		 Please input the unit weight of slope material :'
+    read *, gams
+    print *, '		 Please input the cohesion factor and friction angle :'
+    read *, c,fi
+17  print *, '		 Please input the assumed FS :'
+    read *, FS
+      
+    pi=asin(1.0)*2.0
+    fir=(pi*fi)/180
+    t=tan(fir)
+    tfid=t/FS
+    e=2.718
+    print *, '		First FS will be :',FS   
+    		DO x1=70,100
+			DO y1=60,80
+			r1=((114-x1)**2+(y1-60)**2)**0.5
+            r2=((114-x1)**2+(y1-60)**2)**0.5
+            al1=atan((y1)/(x1-10.0))
+            al2=atan((y1-60.0)/(114.0-x1))
+            tet=(2*pi)-(al1+al2)
+            k1=(r1**2)/(2*tfid)
+            k2=e**(2*tet*tfid)
+            res=c*k1*(k2-1)
+    		ex4=104*(y1-60)
+            ex5=30*104
+            ex1=(y1/2)*(x1-10)
+            ex3=((114-x1)*(y1-60))/2
+            ex=(ex4+ex5)-(ex1+ex3)        
+            a=((114-x1)/2)-5
+            aria=0.5*k1*(k2-1)
+            w=(aria-ex)*gams
+            act=w*a
+    		FScal=(res/act)
+    		IF (FScal<=1) then
+            print *, '		 Calculated FS will be : ERROR !'
+            else
+            print *, '		 Calculated FS will be :',FScal     
+            END IF
+            IF (FScal<=FS) then
+            FScrit=FScal
+            xcrit=x1
+            ycrit=y1
+            r1crit=r1
+            r2crit=r2
+            tetcrit=tet
+            rescrit=res
+            wcrit=w
+            acrit=a
+            actcrit=act
+            END IF
+			END DO
+            END DO
+  	print *, '********************Congrats*************************'
+ 	print *, '		Critical X will be :',xcrit
+    print *, '		Critical Y will be :',ycrit
+    print *, '		Critical first radius will be :',r1crit
+    print *, '		Critical second radius will be :',r2crit
+    print *, '		Tetta angle will be :',tetcrit
+    print *, '		Resistance forces will be :',rescrit
+	print *, '		Weight and moment arm will be :',wcrit
+    print *, '		Moment arm will be :',acrit
+    print *, '		Active forces will be :',actcrit
+ 	print *, '**************************************************'
+	print *, '		Critical Factor of Safety will be :',FScrit
+
+    print *, '		Do you want to try another height ? inter(1=Yes,0=No).'
+    read *, a
+    		IF (a==1) THEN
+			goto 17
+			END IF
+    print *, '********************The End******************************'
+    print *, '		Developed By : M. Reza Nabizadeh'
+ end program logmethod
