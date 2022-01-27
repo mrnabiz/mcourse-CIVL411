@@ -1,0 +1,249 @@
+program swemethod
+implicit none
+
+real c,gams,fi ! Slope parameters
+real adel,bdel,cdel,del,xc,yc !Calculated parameters
+real r0,ra,ma,m1,m2,tet,area,ybar,len,res,w !Calculated parameters
+real FScal,FSinp,FScrit,xcrit,ycrit,rcrit,tetcrit,rescrit,wcrit,acrit,actcrit !Calculated parameters
+real totarea,ext,extbar,totareabar,i,h,noo,k1,x,k2,eta,a,act,mx,y!Calculated parameters
+integer x1,y1,x3,meth,typ,anm
+
+    PRINT *, '		 In this program we attempt to calculate the'
+    PRINT *, '		 factor of safety with Swedish circle method' !Programs information
+	print *, '------------------------------------------------------------'
+    print *, '		 Please input the unit weight of slope material :'
+    read *, gams
+    print *, '		 Please input the cohesion factor and friction angle :'
+    read *, c,fi
+18  print *, '		 Please input the first assumption of FS :'
+    read *, FSinp
+25  print *, '		 Please select one of the methods  :'
+    print *, '		 1) Swedish method with calculation of moment arm'    
+    print *, '		 2) Swedish method with method of Foundation ENG handbook' 
+    read *, ma
+
+          if (ma==1) then          
+    		
+			DO x1=10,80
+			DO y1=80,150
+            DO x3=114,170
+			r0=((x3-x1)**2+(y1-60)**2)**0.5
+            ra=((x1-10)**2+(y1)**2)**0.5
+            
+					if(r0<=ra) then
+                    adel=1+((60/104)**2)
+                    bdel=0-(2*x1)-((2*600*60)/(104*104))-((2*y1*60)/104)
+                    cdel=(x1**2)+(y1**2)-(r0**2)+((600/104)**2)+((2*y1*600)/104)
+                    del=((bdel)**2)-4*cdel*adel
+                    xc=(-bdel-(del**0.5))/2*adel
+                    yc=y1-(((r0**2)-((xc-x1)**2))**0.5)
+                    m1=(60-y1)/(x3-x1)
+                    if (xc==x1) then
+                      tet=asin(1.0)
+                      else 
+                    m2=(yc-y1)/(xc-x1)
+                    end if
+                    tet=atan(abs((m1-m2)/(1-m1*m2)))
+                    area=0.5*r0*r0*(tet-sin(tet))
+                    w=area*gams
+                    ybar=(4*r0*((sin(tet/2))**3))/(3*(tet-sin(tet)))
+                    a=ybar*cos(tet/2)
+                    len=r0*tet
+                    res=c*len*r0
+                    act=w*a
+                    FScal=res/act
+ 									IF (FScal<=1) then
+            						print *, '		 Calculated FS will be : ERROR !'
+            						else
+            						print *, '		 Calculated FS will be :',FScal     
+            						END IF
+                    	IF (FScal<=FSinp) then
+                        meth=1
+                        typ=1
+            			FScrit=FScal
+		            	xcrit=x1
+        		    	ycrit=y1
+           				rcrit=r0
+            			tetcrit=tet
+            			rescrit=res
+            			wcrit=w
+            			acrit=a
+            			actcrit=act
+                        else
+    print *, '		 Please inter a highter initial FS' 
+    go to 18
+            			END IF
+                    end if
+                    
+                    if(r0>=ra) then
+                    yc=0
+                    xc=x1-(r0**2-(yc-y1)**2)**0.5
+                    m1=(60-y1)/(x3-x1)
+                    if (xc==x1) then
+                      tet=asin(1.0)
+                      else 
+                    m2=(yc-y1)/(xc-x1)
+                    end if
+                    tet=atan(abs((m1-m2)/(1-m1*m2)))
+                    totarea=(r0*r0*tet)/2
+                    ext=0.5*((60*x1+60*x3+xc*y1)-(y1*x3+60*114+60*10))
+                    area=totarea-ext
+                    w=area*gams
+                    extbar=(x1+114+x3+10+xc)/5
+                    totareabar=(4*r0*sin(tet/2))/(3*tet)
+                    ybar=(totarea*totareabar-ext*extbar)/(totarea-ext)
+                    a=ybar*cos(tet/2)
+                    len=r0*tet
+                    res=c*len*r0
+                    act=w*a
+                    FScal=res/act
+                    				IF (FScal<=1) then
+            						print *, '		 Calculated FS will be : ERROR !'
+            						else
+            						print *, '		 Calculated FS will be :',FScal     
+            						END IF
+                    	IF (FScal<=FSinp) then
+            			meth=1
+                        typ=2
+                        FScrit=FScal
+		            	xcrit=x1
+        		    	ycrit=y1
+           				rcrit=r0
+            			tetcrit=tet
+            			rescrit=res
+            			wcrit=w
+            			acrit=a
+            			actcrit=act
+                        else
+    print *, '		 Please inter a highter initial FS' 
+    go to 18
+            			END IF
+                    end if
+           END DO
+           END DO
+           END DO
+         end if
+          if (ma==2) then          
+    		
+			DO x1=10,80
+			DO y1=80,150
+            DO x3=114,170
+			r0=((x3-x1)**2+(y1-60)**2)**0.5
+            ra=((x1-10)**2+(y1)**2)**0.5
+            
+					if(r0<=ra) then
+                    i=0.66
+                    h=60
+                    noo=0.59
+               		mx=60/(x3-10)
+                    x=atan(abs((mx-0)/(1)))
+                    adel=1+((60/104)**2)
+                    bdel=0-(2*x1)-((2*600*60)/(104*104))-((2*y1*60)/104)
+                    cdel=(x1**2)+(y1**2)-(r0**2)+((600/104)**2)+((2*y1*600)/104)
+                    del=((bdel)**2)-4*cdel*adel
+                    xc=(-bdel-(del**0.5))/2*adel
+                    yc=y1-(((r0**2)-((xc-x1)**2))**0.5)
+                    m1=(60-y1)/(x3-x1)
+                    m2=(yc-y1)/(xc-x1)
+                    tet=atan(abs((m1-m2)/(1-m1*m2)))
+                    y=tet/2
+                    k1=2*((1/tan(x))*(1/tan(noo))+1)
+                    k2=0.5*((1/sin(x))**2)*(y*((1/sin(y))**2)-(1/tan(y)))
+                    FScal=(c*k1)/((gams*h)*(k2+(1/tan(x))-(1/tan(i))))
+ 									IF (FScal<=1) then
+            						print *, '		 Calculated FS will be : ERROR !'
+            						else
+            						print *, '		 Calculated FS will be :',FScal     
+            						END IF
+                    	IF (FScal<=FSinp) then
+                        meth=2
+                        typ=1
+            			FScrit=FScal
+		            	xcrit=x1
+        		    	ycrit=y1
+           				rcrit=r0
+            			tetcrit=tet
+            			rescrit=res
+            			wcrit=w
+            			acrit=a
+            			actcrit=act
+                        else
+    print *, '		 Please inter a highter initial FS' 
+    go to 18
+            			END IF
+                    end if
+                    
+                    if(r0>=ra) then
+                    i=0.66
+                    h=60
+                    noo=0.59
+               		mx=60/(x3-10)
+                    x=atan(abs((mx-0)/(1)))
+                    yc=0
+                    xc=x1-(((r0**2)-((yc-y1)**2))**0.5)
+                    m1=(60-y1)/(x3-x1)
+                    m2=(yc-y1)/(xc-x1)
+                    tet=atan(abs((m1-m2)/(1-m1*m2)))
+                    y=tet/2
+                    eta=abs(xc/60)
+                    k1=2*((1/tan(x))*(1/tan(noo))+1)
+                    k2=0.5*((1/sin(x))**2)*(y*((1/sin(y))**2)-(1/tan(y)))
+                    FScal=(c*k1)/((gams*h)*(k2+(1/tan(x))-(1/tan(i))-2*eta))
+                    				IF (FScal<=1) then
+            						print *, '		 Calculated FS will be : ERROR !'
+            						else
+            						print *, '		 Calculated FS will be :',FScal     
+            						END IF
+                    	IF (FScal<=FSinp) then
+                        meth=2
+                        typ=2
+            			FScrit=FScal
+		            	xcrit=x1
+        		    	ycrit=y1
+           				rcrit=r0
+            			tetcrit=tet
+            			rescrit=res
+            			wcrit=w
+            			acrit=a
+            			actcrit=act
+                        else
+    print *, '		 Please inter a highter initial FS' 
+    go to 18
+            			END IF
+                    end if
+           END DO
+           END DO
+           END DO
+         end if
+
+  	print *, '********************Congrats*************************'
+	IF (meth==1) then
+    print *, '	Critical method is Swedish method with calculation of moment arm'    
+            			END IF
+	IF (meth==1) then
+    print *, '	Critical method is Swedish method with method of Foundation ENG handbook'    
+            			END IF
+ 	IF (typ==1) then
+    print *, '	Critical slip surface intersects with slope- Toe failure'    
+            			END IF
+	IF (typ==2) then
+    print *, '	Critical slip surface intersects with horizontal line- Base failure'    
+            			END IF                      
+ 	print *, '		Critical X will be :',xcrit
+    print *, '		Critical Y will be :',ycrit
+    print *, '		Critical first radius will be :',rcrit
+    print *, '		Tetta angle will be :',tetcrit
+    print *, '		Resistance forces will be :',rescrit
+	print *, '		Weight and moment arm will be :',wcrit
+    print *, '		Moment arm will be :',acrit
+    print *, '		Active forces will be :',actcrit
+ 	print *, '**************************************************'
+	print *, '		Critical Factor of Safety will be :',FScrit
+    print *, '		Do you want to try another method ? inter(1=Yes,0=No).'
+    read *, anm
+    		IF (anm==1) THEN
+			goto 25
+			END IF
+    print *, '********************The End***********************'
+    print *, '		Developed By : M. Reza Nabizadeh'
+ end program swemethod
