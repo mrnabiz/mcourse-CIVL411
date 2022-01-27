@@ -1,0 +1,208 @@
+program lowemethod
+implicit none
+
+real c,gams,fi,gamw ! Slope parameters
+real pi,fir,r0,ra,adel,bdel,cdel,del,xc,yc,l,b,bb !Calculated parameters
+real xceni,ytopi,yboti,hsoili,wi,xlefti,xrighti,qfinal !Calculated parameters
+real ybotlefti,ybotrighti,delli,mi,alfai,ywatti,hwatti,ui,k1i,k2i,k3i,k4i,k5i !Calculated parameters
+real qi,q,Xcrit,Ycrit,x3crit,rcrit!Calculated parameters
+real fsreservi,fsreserv,fsmini,fsminiaf,qpre !Calculated parameters
+real fsinj,fsfinal,br,tettai
+integer ns,i,snt,x1,y1,x3
+
+    PRINT *, '		 In this program we attempt to calculate the'
+    PRINT *, '		 factor of safety with Ordinary method' !Programs information
+	print *, '------------------------------------------------------------'
+    print *, '		 Please input the unit weight of slope material and water :'
+    read *, gams,gamw
+    print *, '		 Please input the cohesion factor and friction angle :'
+    read *, c,fi
+20  print *, '		 Please input number of the slices  :'
+    read *, ns
+    print *, '		 Please x1,y1,x3  :'
+    read *, x1,y1,x3
+	pi=(asin(1.0))*2
+    fir=(fi*pi)/180
+    br=	(38.0*pi)/180
+	fsreservi=3.0
+    fsreserv=3.0
+    fsminiaf=0.0
+    
+			r0=((x3-x1)**2+(y1-60)**2)**0.5
+            ra=((x1-10)**2+(y1)**2)**0.5
+     		
+     fsinj=1.5
+     q=0.0
+40   print *, '		 x1,y1,x3 :',x1,y1,x3
+			IF(r0<=ra) then
+                    adel=1+((60/104)**2)
+                    bdel=0-(2*x1)-((2*600*60)/(104*104))-((2*y1*60)/104)
+                    cdel=(x1**2)+(y1**2)-(r0**2)+((600/104)**2)+((2*y1*600)/104)
+                    del=((bdel)**2)-4*cdel*adel
+                    xc=(-bdel-(del**0.5))/2*adel
+                    yc=y1-(((r0**2)-((xc-x1)**2))**0.5)
+                    l=x3-xc
+                    b=l/ns
+                    bb=b/2      
+             DO i=1,ns               		
+               		xceni=xc+(bb*i)
+                    	if (xceni>=114) then
+                    	ytopi=60
+                        else
+                        ytopi=((60*xceni)/104)-(600.0/104.0)
+                        end if
+                    yboti=y1-(((r0**2)-((xceni-x1)**2))**0.5)
+                    hsoili=ytopi-yboti
+                    wi=b*hsoili*gams
+                    xlefti=xc+bb*(i-1)
+                    xrighti=xc+bb*(i+1)
+                    ybotlefti=y1-(((r0**2)-((xlefti-x1)**2))**0.5)
+                    ybotrighti=y1-(((r0**2)-((xrighti-x1)**2))**0.5)
+                    delli=((xrighti-xlefti)**2+(ybotrighti-ybotlefti)**2)**0.5
+                    mi=(ybotrighti-ybotlefti)/(xrighti-xlefti)                   
+                    alfai=tan(abs(mi))
+                    tettai=(alfai+br)/2.0
+                    	if (xceni>=114) then
+                    	ywatti=60
+                        else
+                        ywatti=((60*xceni)/104)-(720.0/104.0)
+                        end if                    	
+                    hwatti=ywatti-yboti
+                    ui=hwatti*gamw
+                    k1i=wi*sin(alfai)        
+                    k2i=(c*delli)/(fsinj)
+                    k3i=(ui*delli-wi*cos(alfai))*((tan(fir))/(fsinj))
+                    k4i=cos(alfai-tettai)
+                    k5i=abs(1.0*((sin(alfai-tettai))*(tan(fir)))/(fsinj))
+                    	If (mi<=0) then
+                        k1i=(0.0-1.0)*wi*sin(alfai)
+                    	End If
+                    qi=(k1i-k2i+k3i)/(k4i+k5i)
+                    q=q+qi            
+             End DO
+         			if (q<1 .and. q>-1) then
+            		print *, '		 Q  :',q
+                    print *, '		 FS :',fsinj
+                    	fsmini=fsinj
+                        		IF (fsmini<fsreservi) then
+                  	    fsminiaf=Fsmini
+                  		Fsreservi=Fsmini
+                        qpre=q
+                                end if 
+     				else 
+                        if(q>1) then
+                        fsinj=fsinj-0.1
+                        go to 40
+                        end if
+                        if(q<-1) then
+                        fsinj=fsinj+0.1
+                        go to 40
+                        end if
+                    end if
+                    
+			 End IF 
+                    
+             IF(r0>ra) then
+                    yc=0
+                    xc=x1-(r0**2-(yc-y1)**2)**0.5
+                   	l=x3-xc
+                    b=l/ns
+                    bb=b/2
+                    
+             DO i=1,ns
+               		xceni=xc+(bb*i)
+                    	if (xceni<=10) then
+                        ytopi=0 
+                        else
+                          	if (xceni>=114) then
+                    		ytopi=60
+                        	else
+                        	ytopi=((60*xceni)/104)-(600.0/104.0)
+                        	end if
+                        end if
+                    yboti=y1-(((r0**2)-((xceni-x1)**2))**0.5)
+                    hsoili=ytopi-yboti
+                    wi=b*hsoili*gams
+                    xlefti=xc+bb*(i-1)
+                    xrighti=xc+bb*(i+1)
+                    ybotlefti=y1-(((r0**2)-((xlefti-x1)**2))**0.5)
+                    ybotrighti=y1-(((r0**2)-((xrighti-x1)**2))**0.5)
+                    delli=((xrighti-xlefti)**2+(ybotrighti-ybotlefti)**2)**0.5
+                    mi=(ybotrighti-ybotlefti)/(xrighti-xlefti)                   
+                    alfai=tan(abs(mi))
+                    tettai=(alfai+br)/(2.0)   
+                    	if (xceni<=10) then
+                        ywatti=0 
+                        else
+                          	if (xceni>=114) then
+                    		ywatti=60
+                        	else
+                        	ywatti=((60*xceni)/104)-(720.0/104.0)
+                        	end if
+                        end if
+                    hwatti=ywatti-yboti
+                    ui=hwatti*gamw
+                    k1i=wi*sin(alfai)        
+                    k2i=(c*delli)/(fsinj)
+                    k3i=(ui*delli-wi*cos(alfai))*((tan(fir))/(fsinj))
+                    k4i=cos(alfai-tettai)
+                    k5i=abs(1.0*((sin(alfai-tettai))*(tan(fir)))/(fsinj))
+                    	If (mi<=0) then
+                        k1i=(0.0-1.0)*wi*sin(alfai)
+                    	End If
+                    qi=(k1i-k2i+k3i)/(k4i+k5i)
+                    q=q+qi
+             End DO
+         			if (q<1 .and. q>-1) then
+            		print *, '		 Q  :',q
+                    print *, '		 FS :',fsinj
+                    	fsmini=fsinj
+                        	IF (fsmini<fsreservi) then
+                  	    fsminiaf=Fsmini
+                  		Fsreservi=Fsmini
+                        qpre=q
+                        	end if 
+     				    	else 
+                        	if(q>1) then
+                        	fsinj=fsinj-0.1
+                        	go to 40
+                        	end if
+                        	if(q<-1) then
+                            fsinj=fsinj+0.1
+                       	    go to 40
+                       	    end if
+              end if  
+
+        End If
+    	
+        		    			IF (fsminiaf<fsreserv .and. fsminiaf/=0.0) then
+                  				fsfinal=Fsminiaf
+                  				Fsreserv=Fsminiaf
+                                qfinal=qpre
+                                xcrit=x1
+                                ycrit=y1
+                                x3crit=x3
+                                rcrit=r0
+                                end if
+
+        				IF (abs(1.0*fsminiaf)<0.00001) then
+    print *, 'With this kind of limits the is no resonable FS exists'
+    					else
+    print *, '*******************Congrats**************************'
+    print *, '  Critical centre of slip surface circle will be :',xcrit,ycrit
+    print *, '  Critical radios and inter section will be :',rcrit,x3crit
+  	print *, '*****************************************************'
+    print *, '  Exact approximation Q will be :',qfinal
+    print *, '  Exact approximation of critical FS will be :',fsfinal
+  	print *, '*****************************************************'
+    					end if
+    print *, '  Do you want to enter another slice number ? enter(1=Yes,0=No).'
+    read *, snt
+    		IF (snt==1) THEN
+			goto 20
+			END IF
+
+    print *, '********************The End***********************'
+    print *, '		Developed By : M. Reza Nabizadeh'
+
+ end program lowemethod
