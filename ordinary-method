@@ -1,0 +1,185 @@
+program ordmethod
+implicit none
+
+real c,gams,fi,gamw ! Slope parameters
+real pi,fir,r0,ra,adel,bdel,cdel,del,xc,yc,l,b,bb !Calculated parameters
+real k1,k2,k3,xceni,ytopi,yboti,hsoili,wi,xlefti,xrighti !Calculated parameters
+real ybotlefti,ybotrighti,delli,mi,alfai,ywatti,hwatti,ui,k1i,k2i,k3i !Calculated parameters
+real FSmin,Fsin,Fscal,xcrit,ycrit,rcrit !Calculated parameters
+integer asf,ns,i,snt,x1,y1,x3
+
+    PRINT *, '		 In this program we attempt to calculate the'
+    PRINT *, '		 factor of safety with Ordinary method' !Programs information
+	print *, '------------------------------------------------------------'
+    print *, '		 Please input the unit weight of slope material and water :'
+    read *, gams,gamw
+    print *, '		 Please input the cohesion factor and friction angle :'
+    read *, c,fi
+19  print *, '		 Please input number of the slices  :'
+    read *, ns
+21  print *, '		 Please input first assumption of FS  :'
+    read *, Fsin       
+23	pi=(asin(1.0))*2
+    fir=(fi*pi)/180
+    Fsmin=0
+			DO x1=10,80
+			DO y1=80,150
+            DO x3=114,150
+			r0=((x3-x1)**2+(y1-60)**2)**0.5
+            ra=((x1-10)**2+(y1)**2)**0.5
+            
+			IF(r0<=ra) then
+                    adel=1+((60/104)**2)
+                    bdel=0-(2*x1)-((2*600*60)/(104*104))-((2*y1*60)/104)
+                    cdel=(x1**2)+(y1**2)-(r0**2)+((600/104)**2)+((2*y1*600)/104)
+                    del=((bdel)**2)-4*cdel*adel
+                    xc=(-bdel-(del**0.5))/2*adel
+                    yc=y1-(((r0**2)-((xc-x1)**2))**0.5)
+                    l=x3-xc
+                    b=l/ns
+                    bb=b/2
+                   
+             DO i=1,ns
+               		k1=0.0
+                    k2=0.0
+                    k3=0.0
+               		xceni=xc+b*(i-1)+bb
+                    	if (xceni>=114) then
+                    	ytopi=60
+                        else
+                        ytopi=((60*xceni)/104)-(600.0/104.0)
+                        end if
+                    yboti=y1-(((r0**2)-((xceni-x1)**2))**0.5)
+                    hsoili=ytopi-yboti
+                    wi=b*hsoili*gams
+                    xlefti=xc+b*(i-1)
+                    xrighti=xc+b*i
+                    ybotlefti=y1-(((r0**2)-((xlefti-x1)**2))**0.5)
+                    ybotrighti=y1-(((r0**2)-((xrighti-x1)**2))**0.5)
+                    delli=((xrighti-xlefti)**2+(ybotrighti-ybotlefti)**2)**0.5
+                    mi=(ybotrighti-ybotlefti)/(xrighti-xlefti)                   
+                    alfai=tan(abs(mi))
+                    	if (xceni>=114) then
+                    	ywatti=60
+                        else
+                        ywatti=((60*xceni)/104)-(720.0/104.0)
+                        end if                    	
+                    hwatti=ywatti-yboti
+                    ui=hwatti*gamw
+                    k1i=(wi*cos(alfai)-ui*delli*((cos(alfai))**2))*tan(fir)            
+                    k2i=c*delli
+                    k3i=wi*sin(alfai)
+                    	If (mi<=0) then
+                        k3i=(0.0-1.0)*wi*sin(alfai)
+                    	End If
+                    k1=k1+k1i
+                    k2=k2+k2i
+                    k3=k3+k3i
+                    	IF (k3==0.0) THEN
+                    	print *, '		 This Slip surface is Stable.'
+                        else
+                        Fscal=(k1+k2)/k3 
+                        end if					
+             End DO             
+            		print *, '		 Calculated FS will be :',Fscal
+			 End if
+                    
+             IF(r0>ra) then
+                    yc=0
+                    xc=x1-(r0**2-(yc-y1)**2)**0.5
+                   	l=x3-xc
+                    b=l/ns
+                    bb=b/2
+                    
+             DO i=1,ns
+               		k1=0.0
+                    k2=0.0
+                    k3=0.0
+               		xceni=xc+b*(i-1)+bb
+                    	if (xceni<=10) then
+                        ytopi=0 
+                        else
+                          	if (xceni>=114) then
+                    		ytopi=60
+                        	else
+                        	ytopi=((60*xceni)/104)-(600.0/104.0)
+                        	end if
+                        end if
+                    yboti=y1-(((r0**2)-((xceni-x1)**2))**0.5)
+                    hsoili=ytopi-yboti
+                    wi=b*hsoili*gams
+                    xlefti=xc+b*(i-1)
+                    xrighti=xc+b*i
+                    ybotlefti=y1-(((r0**2)-((xlefti-x1)**2))**0.5)
+                    ybotrighti=y1-(((r0**2)-((xrighti-x1)**2))**0.5)
+                    delli=((xrighti-xlefti)**2+(ybotrighti-ybotlefti)**2)**0.5
+                    mi=(ybotrighti-ybotlefti)/(xrighti-xlefti)                   
+                    alfai=tan(abs(mi))   
+                    	if (xceni<=10) then
+                        ywatti=0 
+                        else
+                          	if (xceni>=114) then
+                    		ywatti=60
+                        	else
+                        	ywatti=((60*xceni)/104)-(720.0/104.0)
+                        	end if
+                        end if
+                    hwatti=ywatti-yboti
+                    ui=hwatti*gamw
+                    k1i=(wi*cos(alfai)-ui*delli*((cos(alfai))**2))*tan(fir)            
+                    k2i=c*delli
+                    k3i=wi*sin(alfai)
+                    	If (mi<=0) then
+                        k3i=(0.0-1.0)*wi*sin(alfai)
+                    	End If
+                    k1=k1+k1i
+                    k2=k2+k2i
+                    k3=k3+k3i
+                    	IF (k3==0.0) THEN
+                    	print *, '		 This Slip surface is Stable.'
+                    	else
+                    	Fscal=(k1+k2)/k3
+                        end if
+             End DO
+					print *, '		 Calculated FS will be :',Fscal
+			 End IF  
+             			IF (Fscal>0 .and. Fscal<Fsin) then
+                    	FSmin=Fscal
+                        Fsin=Fscal
+                        xcrit=x1
+                        ycrit=y1
+                        rcrit=r0
+                    	End If 
+ 	END DO
+ 	END DO
+ 	END DO
+    
+                    if (Fsmin==0.0) then
+    print *, '		You entered a low first assumption of FS' 
+    print *, '		Do you want to enter another assumption of FS ? enter(1=Yes,0=No).'
+    print *, '		Enter 1 for manually input a new assumption'
+    print *, '		Enter 0 for let the program automatically input a new assumption'
+    read *, asf
+    					IF (asf==1) THEN
+						goto 21
+            			end if
+            			if (asf==0) then
+            			fsin=fsin+0.1
+            			goto 23
+						END IF 
+    				end if
+                    if (Fsmin/=0.0)  then  		      
+  	print *, '********************Congrats*************************'
+	print *, '		Critical Factor of Safety will be :',FSmin
+	print *, 'Critical centre of slip surface circle will be :',xcrit,ycrit
+    print *, '		Critical radios will be :',rcrit
+    print *, '		Do you want to enter another slice number ? enter(1=Yes,0=No).'
+    read *, snt
+    		IF (snt==1) THEN
+			goto 19
+			END IF
+            		end if
+    print *, '********************The End***********************'
+    print *, '		Developed By : M. Reza Nabizadeh'
+ end program ordmethod
+ 
